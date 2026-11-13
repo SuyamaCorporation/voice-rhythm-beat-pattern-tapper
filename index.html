@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リズム打鍵パターンタッパー＆分析</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-center mb-1">🥁 リズムタッパー＆分析</h1>
+  <p class="text-center text-gray-400 mb-6">スペースキー or タップでリズムを刻もう！BPM・拍子を自動解析</p>
+
+  <div class="grid grid-cols-4 gap-2 mb-4">
+    <div class="bg-gray-800 rounded-xl p-3 text-center">
+      <div class="text-yellow-400 text-2xl font-bold" id="stat-bpm">--</div>
+      <div class="text-gray-400 text-xs">BPM</div>
+    </div>
+    <div class="bg-gray-800 rounded-xl p-3 text-center">
+      <div class="text-blue-400 text-2xl font-bold" id="stat-time-sig">--</div>
+      <div class="text-gray-400 text-xs">拍子</div>
+    </div>
+    <div class="bg-gray-800 rounded-xl p-3 text-center">
+      <div class="text-green-400 text-2xl font-bold" id="stat-accuracy">--</div>
+      <div class="text-gray-400 text-xs">精度</div>
+    </div>
+    <div class="bg-gray-800 rounded-xl p-3 text-center">
+      <div class="text-purple-400 text-2xl font-bold" id="stat-taps">0</div>
+      <div class="text-gray-400 text-xs">タップ数</div>
+    </div>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-5 mb-4">
+    <div class="flex gap-3 mb-4 justify-center">
+      <button id="btn-tap" class="bg-blue-600 hover:bg-blue-500 active:bg-blue-800 px-10 py-6 rounded-2xl font-bold text-2xl select-none touch-none" aria-label="タップ（リズムを刻む）">🥁 タップ</button>
+      <div class="flex flex-col gap-2">
+        <button id="btn-reset" class="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg text-sm" aria-label="リセット">🔄 リセット</button>
+        <button id="btn-save" class="bg-green-700 hover:bg-green-600 px-4 py-2 rounded-lg text-sm" aria-label="パターンを保存">💾 保存</button>
+      </div>
+    </div>
+    <p class="text-center text-gray-500 text-sm">スペースキーでも入力できます</p>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-5 mb-4">
+    <h2 class="text-lg font-bold mb-3">📊 波形ビジュアライザー</h2>
+    <canvas id="waveform" width="600" height="80" class="w-full rounded-lg bg-gray-900"></canvas>
+    <div id="beat-dots" class="flex gap-1 mt-2 flex-wrap min-h-6"></div>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-5 mb-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-bold">🎵 メトロノーム練習モード</h2>
+      <label for="metro-toggle" class="sr-only">メトロノームのオン/オフ</label>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-400">OFF</span>
+        <div class="relative">
+          <input id="metro-toggle" type="checkbox" class="sr-only">
+          <div id="toggle-track" class="w-12 h-6 rounded-full bg-gray-600 cursor-pointer">
+            <div id="toggle-thumb" class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-all"></div>
+          </div>
+        </div>
+        <span class="text-sm text-gray-400">ON</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 mb-2">
+      <label for="metro-bpm" class="text-sm text-gray-400">テンポ: <span id="metro-bpm-val" class="text-white font-bold">120</span> BPM</label>
+      <input id="metro-bpm" type="range" min="40" max="240" value="120" class="flex-1 h-2 rounded-full appearance-none bg-gray-700 cursor-pointer" aria-label="メトロノームBPMスライダー">
+    </div>
+    <div id="metro-flash" class="h-4 rounded-full bg-gray-700 transition-all duration-75"></div>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-5 mb-4">
+    <h2 class="text-lg font-bold mb-3">🥁 ドラムパターン比較</h2>
+    <div class="space-y-2 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="text-gray-400 w-20">ロック 4/4</span>
+        <div class="flex gap-1">
+          <span class="bg-red-700 w-5 h-5 rounded text-xs flex items-center justify-center">K</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-yellow-700 w-5 h-5 rounded text-xs flex items-center justify-center">S</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-red-700 w-5 h-5 rounded text-xs flex items-center justify-center">K</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-yellow-700 w-5 h-5 rounded text-xs flex items-center justify-center">S</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-gray-400 w-20">ボサノバ</span>
+        <div class="flex gap-1">
+          <span class="bg-green-800 w-5 h-5 rounded text-xs flex items-center justify-center">•</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-green-800 w-5 h-5 rounded text-xs flex items-center justify-center">•</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-green-800 w-5 h-5 rounded text-xs flex items-center justify-center">•</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-green-800 w-5 h-5 rounded text-xs flex items-center justify-center">•</span>
+          <span class="bg-green-800 w-5 h-5 rounded text-xs flex items-center justify-center">•</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-green-800 w-5 h-5 rounded text-xs flex items-center justify-center">•</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-green-800 w-5 h-5 rounded text-xs flex items-center justify-center">•</span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+          <span class="bg-gray-700 w-5 h-5 rounded"></span>
+        </div>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-2">K=キック S=スネア •=クラーベ拍</p>
+  </div>
+
+  <div class="bg-gray-800 rounded-xl p-5">
+    <h2 class="text-lg font-bold mb-3">📂 保存パターン</h2>
+    <div id="saved-patterns" class="space-y-2 text-sm text-gray-300"></div>
+    <p id="no-patterns" class="text-gray-500 text-sm">保存されたパターンはありません</p>
+  </div>
+</div>
+
+<script>
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+const STORAGE_KEY = 'app_voice-rhythm-beat-pattern-tapper';
+let tapTimes = [];
+let metroInterval = null;
+let metroBeat = false;
+let audioCtx = null;
+
+let saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+function saveAll() { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); }
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq, dur) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'square';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+
+function tap() {
+  const now = performance.now();
+  tapTimes.push(now);
+  if (tapTimes.length > 32) tapTimes.shift();
+  beep(880, 0.05);
+  flashTap();
+  analyze();
+}
+
+function flashTap() {
+  const btn = document.getElementById('btn-tap');
+  btn.classList.add('bg-blue-400');
+  setTimeout(() => btn.classList.remove('bg-blue-400'), 80);
+}
+
+function analyze() {
+  const n = tapTimes.length;
+  document.getElementById('stat-taps').textContent = n;
+
+  if (n < 2) {
+    document.getElementById('stat-bpm').textContent = '--';
+    document.getElementById('stat-time-sig').textContent = '--';
+    document.getElementById('stat-accuracy').textContent = '--';
+    drawWaveform();
+    return;
+  }
+
+  const intervals = [];
+  for (let i = 1; i < tapTimes.length; i++) {
+    intervals.push(tapTimes[i] - tapTimes[i-1]);
+  }
+
+  const avg = intervals.reduce((a,b) => a+b, 0) / intervals.length;
+  const bpm = Math.round(60000 / avg);
+
+  const variance = intervals.map(v => (v - avg) ** 2).reduce((a,b) => a+b, 0) / intervals.length;
+  const stddev = Math.sqrt(variance);
+  const accuracy = Math.max(0, Math.round(100 - (stddev / avg) * 100));
+
+  let timeSig = '4/4';
+  if (n >= 4) {
+    const ratio3 = Math.abs(avg * 3 - 60000 / (bpm / 3)) / avg;
+    if (ratio3 < 0.1) timeSig = '3/4';
+    if (avg > 1200) timeSig = '6/8';
+  }
+
+  document.getElementById('stat-bpm').textContent = bpm;
+  document.getElementById('stat-time-sig').textContent = timeSig;
+  document.getElementById('stat-accuracy').textContent = accuracy + '%';
+
+  drawWaveform(intervals, avg);
+  updateBeatDots(intervals, avg);
+}
+
+function drawWaveform(intervals, avg) {
+  const canvas = document.getElementById('waveform');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!intervals || intervals.length < 2) {
+    ctx.strokeStyle = '#374151';
+    ctx.beginPath();
+    ctx.moveTo(0, H/2);
+    ctx.lineTo(W, H/2);
+    ctx.stroke();
+    return;
+  }
+
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const step = W / (intervals.length + 1);
+  intervals.forEach((v, i) => {
+    const x = step * (i + 1);
+    const deviation = (v - avg) / avg;
+    const y = H/2 + deviation * H * 0.4;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+    ctx.fillStyle = Math.abs(deviation) < 0.05 ? '#22c55e' : Math.abs(deviation) < 0.15 ? '#eab308' : '#ef4444';
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.stroke();
+
+  ctx.strokeStyle = '#4b5563';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(0, H/2);
+  ctx.lineTo(W, H/2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function updateBeatDots(intervals, avg) {
+  const container = document.getElementById('beat-dots');
+  container.innerHTML = '';
+  if (!intervals) return;
+  intervals.forEach(v => {
+    const span = document.createElement('span');
+    const dev = Math.abs(v - avg) / avg;
+    span.className = `w-3 h-3 rounded-full ${dev < 0.05 ? 'bg-green-500' : dev < 0.15 ? 'bg-yellow-500' : 'bg-red-500'}`;
+    container.appendChild(span);
+  });
+}
+
+function resetTaps() {
+  tapTimes = [];
+  document.getElementById('stat-taps').textContent = '0';
+  document.getElementById('stat-bpm').textContent = '--';
+  document.getElementById('stat-time-sig').textContent = '--';
+  document.getElementById('stat-accuracy').textContent = '--';
+  document.getElementById('beat-dots').innerHTML = '';
+  drawWaveform();
+}
+
+function savePattern() {
+  if (tapTimes.length < 4) return;
+  const intervals = [];
+  for (let i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i-1]);
+  const avg = intervals.reduce((a,b) => a+b,0)/intervals.length;
+  const bpm = Math.round(60000/avg);
+  saved.push({ bpm, taps: tapTimes.length, time: new Date().toLocaleTimeString('ja-JP') });
+  if (saved.length > 20) saved.shift();
+  saveAll();
+  renderSaved();
+}
+
+function renderSaved() {
+  const el = document.getElementById('saved-patterns');
+  const noEl = document.getElementById('no-patterns');
+  el.innerHTML = '';
+  if (saved.length === 0) { noEl.classList.remove('hidden'); return; }
+  noEl.classList.add('hidden');
+  saved.slice().reverse().forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'flex items-center justify-between bg-gray-700 rounded p-2';
+    const info = document.createElement('span');
+    info.textContent = `${p.time} — ${p.bpm}BPM / ${p.taps}タップ`;
+    const btn = document.createElement('button');
+    btn.className = 'text-red-400 hover:text-red-300 text-xs';
+    btn.setAttribute('aria-label', '削除');
+    btn.textContent = '削除';
+    btn.addEventListener('click', () => {
+      saved.splice(saved.length - 1 - i, 1);
+      saveAll();
+      renderSaved();
+    });
+    div.appendChild(info);
+    div.appendChild(btn);
+    el.appendChild(div);
+  });
+}
+
+const toggleTrack = document.getElementById('toggle-track');
+const toggleInput = document.getElementById('metro-toggle');
+
+toggleTrack.addEventListener('click', () => {
+  toggleInput.checked = !toggleInput.checked;
+  const on = toggleInput.checked;
+  document.getElementById('toggle-thumb').style.transform = on ? 'translateX(24px)' : '';
+  toggleTrack.className = `w-12 h-6 rounded-full cursor-pointer ${on ? 'bg-blue-500' : 'bg-gray-600'}`;
+  if (on) startMetro();
+  else stopMetro();
+});
+
+function startMetro() {
+  stopMetro();
+  const bpm = parseInt(document.getElementById('metro-bpm').value);
+  const ms = 60000 / bpm;
+  metroInterval = setInterval(() => {
+    beep(660, 0.08);
+    const flash = document.getElementById('metro-flash');
+    flash.classList.add('bg-blue-500');
+    setTimeout(() => flash.classList.remove('bg-blue-500'), 60);
+  }, ms);
+}
+
+function stopMetro() {
+  if (metroInterval) { clearInterval(metroInterval); metroInterval = null; }
+  document.getElementById('metro-flash').className = 'h-4 rounded-full bg-gray-700 transition-all duration-75';
+}
+
+document.getElementById('metro-bpm').addEventListener('input', (e) => {
+  document.getElementById('metro-bpm-val').textContent = e.target.value;
+  if (toggleInput.checked) startMetro();
+});
+
+document.getElementById('btn-tap').addEventListener('click', tap);
+document.getElementById('btn-tap').addEventListener('touchstart', (e) => { e.preventDefault(); tap(); });
+document.getElementById('btn-reset').addEventListener('click', resetTaps);
+document.getElementById('btn-save').addEventListener('click', savePattern);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && e.target === document.body) {
+    e.preventDefault();
+    tap();
+  }
+});
+
+drawWaveform();
+renderSaved();
+</script>
+</body>
+</html>
